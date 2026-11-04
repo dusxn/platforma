@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.raflab.platforma_server.model.*;
 import org.raflab.platforma_server.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -20,13 +21,21 @@ public class DataSeeder implements CommandLineRunner {
     private final ExamTermRepository examTermRepository;
     private final GroupRepository groupRepository;
     private final ExamRegistrationRepository examRegistrationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+        userRepository.findByUsername("student1")
+                .filter(user -> user.getPassword().equals("password123"))
+                .ifPresent(user -> {
+                    user.setPassword(passwordEncoder.encode("password123"));
+                    userRepository.save(user);
+                });
+
         if (userRepository.count() == 0) {
             User studentUser = new User();
             studentUser.setUsername("student1");
-            studentUser.setPassword("password123");
+            studentUser.setPassword(passwordEncoder.encode("password123"));
             studentUser.setRole(Role.STUDENT);
             userRepository.save(studentUser);
 
