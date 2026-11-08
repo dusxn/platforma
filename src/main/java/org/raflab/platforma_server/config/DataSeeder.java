@@ -33,6 +33,7 @@ public class DataSeeder implements CommandLineRunner {
                 });
 
         if (userRepository.count() == 0) {
+            // Create and save a student user
             User studentUser = new User();
             studentUser.setUsername("student1");
             studentUser.setPassword(passwordEncoder.encode("password123"));
@@ -46,6 +47,27 @@ public class DataSeeder implements CommandLineRunner {
             student.setUser(studentUser);
             studentRepository.save(student);
 
+            User studentUser2 = new User();
+            studentUser2.setUsername("student2");
+            studentUser2.setPassword(passwordEncoder.encode("password123"));
+            studentUser2.setRole(Role.STUDENT);
+            userRepository.save(studentUser2);
+
+            Student student2 = new Student();
+            student2.setFirstName("Nikola");
+            student2.setLastName("Jovic");
+            student2.setIndexNumber("SI6324");
+            student2.setUser(studentUser2);
+            studentRepository.save(student2);
+
+            // Create and save a teacher user
+            User teacherUser = new User();
+            teacherUser.setUsername("teacher1");
+            teacherUser.setPassword(passwordEncoder.encode("password123"));
+            teacherUser.setRole(Role.TEACHER);
+            userRepository.save(teacherUser);
+
+            // Create and save a course, exam period, exam term, group, and exam registration
             Course course = new Course();
             course.setCode("DBS");
             course.setName("Database Systems");

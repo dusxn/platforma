@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.raflab.platforma_server.model.Role;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

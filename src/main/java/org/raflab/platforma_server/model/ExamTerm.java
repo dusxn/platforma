@@ -1,5 +1,7 @@
 package org.raflab.platforma_server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "exam_terms")
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ExamTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,5 +24,6 @@ public class ExamTerm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exam_period_id")
+    @JsonIgnore
     private ExamPeriod examPeriod;
 }
