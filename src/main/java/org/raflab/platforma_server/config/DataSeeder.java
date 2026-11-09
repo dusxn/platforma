@@ -32,6 +32,31 @@ public class DataSeeder implements CommandLineRunner {
                     userRepository.save(user);
                 });
 
+        if (userRepository.findByUsername("teacher1").isEmpty()) {
+            User teacherUser = new User();
+            teacherUser.setUsername("teacher1");
+            teacherUser.setPassword(passwordEncoder.encode("password123"));
+            teacherUser.setRole(Role.TEACHER);
+            userRepository.save(teacherUser);
+        }
+
+        User studentUser2 = userRepository.findByUsername("student2").orElseGet(() -> {
+            User user = new User();
+            user.setUsername("student2");
+            user.setPassword(passwordEncoder.encode("password123"));
+            user.setRole(Role.STUDENT);
+            return userRepository.save(user);
+        });
+
+        if (studentRepository.findByUser_Username("student2").isEmpty()) {
+            Student student2 = new Student();
+            student2.setFirstName("Test");
+            student2.setLastName("Student");
+            student2.setIndexNumber("TEST0002");
+            student2.setUser(studentUser2);
+            studentRepository.save(student2);
+        }
+
         if (userRepository.count() == 0) {
             // Create and save a student user
             User studentUser = new User();
@@ -46,26 +71,6 @@ public class DataSeeder implements CommandLineRunner {
             student.setIndexNumber("RN1023");
             student.setUser(studentUser);
             studentRepository.save(student);
-
-            User studentUser2 = new User();
-            studentUser2.setUsername("student2");
-            studentUser2.setPassword(passwordEncoder.encode("password123"));
-            studentUser2.setRole(Role.STUDENT);
-            userRepository.save(studentUser2);
-
-            Student student2 = new Student();
-            student2.setFirstName("Nikola");
-            student2.setLastName("Jovic");
-            student2.setIndexNumber("SI6324");
-            student2.setUser(studentUser2);
-            studentRepository.save(student2);
-
-            // Create and save a teacher user
-            User teacherUser = new User();
-            teacherUser.setUsername("teacher1");
-            teacherUser.setPassword(passwordEncoder.encode("password123"));
-            teacherUser.setRole(Role.TEACHER);
-            userRepository.save(teacherUser);
 
             // Create and save a course, exam period, exam term, group, and exam registration
             Course course = new Course();

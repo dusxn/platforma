@@ -10,4 +10,5 @@ public interface ExamRegistrationRepository extends JpaRepository<ExamRegistrati
     List<ExamRegistration> findByExamTermId(Long examTermId);
     List<ExamRegistration> findByGroupId(Long groupId);
     boolean existsByStudentIdAndExamTermId(Long studentId, Long examTermId);
+    boolean existsByStudentIdAndExamTermIdAndGroupId(Long studentId, Long examTermId, Long groupId);
 }
