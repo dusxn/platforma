@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface SolutionRepository extends JpaRepository<Solution, Long> {
     List<Solution> findByStudentId(Long studentId);
+    List<Solution> findByTaskId(Long taskId);
     Optional<Solution> findByStudentIdAndTaskId(Long studentId, Long taskId);
 }

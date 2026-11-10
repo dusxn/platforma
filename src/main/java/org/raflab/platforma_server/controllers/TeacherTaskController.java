@@ -5,6 +5,7 @@ import org.raflab.platforma_server.controllers.request.BulkExamRegistrationReque
 import org.raflab.platforma_server.controllers.request.CreateExamRegistrationRequest;
 import org.raflab.platforma_server.controllers.request.CreateTaskRequest;
 import org.raflab.platforma_server.controllers.response.ExamRegistrationResponse;
+import org.raflab.platforma_server.controllers.response.TaskSubmissionOverviewResponse;
 import org.raflab.platforma_server.model.ExamRegistration;
 import org.raflab.platforma_server.model.Task;
 import org.raflab.platforma_server.services.TeacherService;
@@ -46,5 +47,12 @@ public class TeacherTaskController {
     public ResponseEntity<List<ExamRegistrationResponse>> registerStudentsBulk(@RequestBody BulkExamRegistrationRequest request) {
         List<ExamRegistrationResponse> response = teacherService.registerStudentsBulk(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{taskId}/submissions")
+    @PreAuthorize("hasAuthority('ROLE_TEACHER')")
+    public ResponseEntity<List<TaskSubmissionOverviewResponse>> getTaskSubmissions(@PathVariable Long taskId) {
+        List<TaskSubmissionOverviewResponse> submissions = teacherService.getSubmissionsForTask(taskId);
+        return ResponseEntity.ok(submissions);
     }
 }
