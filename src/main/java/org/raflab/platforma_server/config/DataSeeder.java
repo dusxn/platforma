@@ -25,12 +25,32 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        /*
         userRepository.findByUsername("student1")
                 .filter(user -> user.getPassword().equals("password123"))
                 .ifPresent(user -> {
                     user.setPassword(passwordEncoder.encode("password123"));
                     userRepository.save(user);
                 });
+
+         */
+
+        User studentUser1 = userRepository.findByUsername("student1").orElseGet(() -> {
+            User user = new User();
+            user.setUsername("student1");
+            user.setRole(Role.STUDENT);
+            user.setPassword(passwordEncoder.encode("password123"));
+            return userRepository.save(user);
+        });
+
+        if (studentRepository.findByUser_Username("student1").isEmpty()) {
+            Student student = new Student();
+            student.setFirstName("Petar");
+            student.setLastName("Petrovic");
+            student.setIndexNumber("RN1023");
+            student.setUser(studentUser1);
+            studentRepository.save(student);
+        }
 
         if (userRepository.findByUsername("teacher1").isEmpty()) {
             User teacherUser = new User();
@@ -57,20 +77,9 @@ public class DataSeeder implements CommandLineRunner {
             studentRepository.save(student2);
         }
 
-        if (userRepository.count() == 0) {
+        if (courseRepository.count() == 0) {
             // Create and save a student user
-            User studentUser = new User();
-            studentUser.setUsername("student1");
-            studentUser.setPassword(passwordEncoder.encode("password123"));
-            studentUser.setRole(Role.STUDENT);
-            userRepository.save(studentUser);
-
-            Student student = new Student();
-            student.setFirstName("Petar");
-            student.setLastName("Petrovic");
-            student.setIndexNumber("RN1023");
-            student.setUser(studentUser);
-            studentRepository.save(student);
+            Student student = studentRepository.findByUser_Username("student1").get();
 
             // Create and save a course, exam period, exam term, group, and exam registration
             Course course = new Course();
@@ -83,22 +92,41 @@ public class DataSeeder implements CommandLineRunner {
             examPeriod.setCourse(course);
             examPeriodRepository.save(examPeriod);
 
-            ExamTerm examTerm = new ExamTerm();
-            examTerm.setStartTime(LocalDateTime.now().plusDays(1));
-            examTerm.setEndTime(LocalDateTime.now().plusDays(1).plusHours(3));
-            examTerm.setExamPeriod(examPeriod);
-            examTermRepository.save(examTerm);
+            ExamTerm activeTerm = new ExamTerm();
+            activeTerm.setStartTime(LocalDateTime.now().minusHours(1));;
+            activeTerm.setEndTime(LocalDateTime.now().plusHours(2));
+            activeTerm.setExamPeriod(examPeriod);
+            examTermRepository.save(activeTerm);
+
+            ExamTerm pastTerm = new ExamTerm();
+            pastTerm.setStartTime(LocalDateTime.now().minusHours(5));;
+            pastTerm.setEndTime(LocalDateTime.now().minusHours(2));
+            pastTerm.setExamPeriod(examPeriod);
+            examTermRepository.save(pastTerm);
 
             Group group = new Group();
             group.setName("Group 1");
-            group.setExamTerm(examTerm);
+            group.setExamTerm(activeTerm);
             groupRepository.save(group);
+
+            Group expiredGroup = new Group();
+            expiredGroup.setName("Group 2 (Expired)");
+            expiredGroup.setExamTerm(pastTerm);
+            groupRepository.save(expiredGroup);
 
             ExamRegistration registration = new ExamRegistration();
             registration.setStudent(student);
-            registration.setExamTerm(examTerm);
+            registration.setExamTerm(activeTerm);
             registration.setGroup(group);
             examRegistrationRepository.save(registration);
+
+            ExamRegistration expiredRegistration = new ExamRegistration();
+            expiredRegistration.setStudent(student);
+            expiredRegistration.setExamTerm(pastTerm);
+            expiredRegistration.setGroup(expiredGroup);
+            examRegistrationRepository.save(expiredRegistration);
+
+
 
             System.out.println("Data seeding completed successfully.");
         }

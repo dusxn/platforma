@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ExamRegistrationRepository extends JpaRepository<ExamRegistration, Long> {
     List<ExamRegistration> findByExamTermId(Long examTermId);
+    List<ExamRegistration> findByStudentId(Long studentId);
     List<ExamRegistration> findByGroupId(Long groupId);
     boolean existsByStudentIdAndExamTermId(Long studentId, Long examTermId);
     boolean existsByStudentIdAndExamTermIdAndGroupId(Long studentId, Long examTermId, Long groupId);

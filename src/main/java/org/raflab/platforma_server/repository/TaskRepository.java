@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByGroupId(Long groupId);
+    List<Task> findByGroupIdIn(List<Long> groupIds);
 
     @Query("SELECT t FROM Task t JOIN FETCH t.group g JOIN FETCH g.examTerm WHERE t.id = :taskId")
     Optional<Task> findByIdWithGroupAndExamTerm(@Param("taskId") Long taskId);
