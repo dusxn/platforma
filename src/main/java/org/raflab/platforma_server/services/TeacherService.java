@@ -5,6 +5,7 @@ import org.raflab.platforma_server.controllers.request.BulkExamRegistrationReque
 import org.raflab.platforma_server.controllers.request.CreateExamRegistrationRequest;
 import org.raflab.platforma_server.controllers.request.CreateTaskRequest;
 import org.raflab.platforma_server.controllers.response.ExamRegistrationResponse;
+import org.raflab.platforma_server.controllers.response.TaskSubmissionOverviewResponse;
 import org.raflab.platforma_server.exceptions.ResourceNotFoundException;
 import org.raflab.platforma_server.model.*;
 import org.raflab.platforma_server.repository.*;
@@ -21,6 +22,7 @@ public class TeacherService {
     private final StudentRepository studentRepository;
     private final ExamTermRepository examTermRepository;
     private final ExamRegistrationRepository examRegistrationRepository;
+    private final SolutionRepository solutionRepository;
 
     @Transactional
     public Task createTask(CreateTaskRequest request) {
@@ -105,6 +107,23 @@ public class TeacherService {
         return examRegistrationRepository.findByExamTermId(examTermId)
                 .stream()
                 .map(ExamRegistrationResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskSubmissionOverviewResponse> getSubmissionsForTask(Long taskId) {
+        return solutionRepository.findByTaskId(taskId).stream()
+                .map(solution -> new TaskSubmissionOverviewResponse(
+                        solution.getStudent().getId(),
+                        solution.getStudent().getFirstName(),
+                        solution.getStudent().getLastName(),
+                        solution.getStudent().getIndexNumber(),
+                        solution.getTask().getId(),
+                        solution.getTask().getTitle(),
+                        solution.getDownloadTime(),
+                        solution.getSubmissionTime(),
+                        solution.getSolutionPath()
+                ))
                 .toList();
     }
 }
