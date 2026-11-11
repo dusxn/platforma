@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import org.raflab.platforma_server.controllers.response.CommentResponse;
 import org.raflab.platforma_server.controllers.response.SolutionResponse;
 import org.raflab.platforma_server.controllers.response.TaskResponse;
 import org.raflab.platforma_server.exceptions.ForbiddenException;
@@ -31,7 +32,7 @@ public class StudentTaskService {
     private final TaskRepository taskRepository;
     private final ExamRegistrationRepository examRegistrationRepository;
     private final SolutionRepository solutionRepository;
-    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Value("${app.tasks.storage-dir:task-archives}")
     private String storageDirectory;
@@ -160,7 +161,7 @@ public class StudentTaskService {
         solution.setSubmissionTime(now);
 
         Solution saved = solutionRepository.save(solution);
-        return SolutionResponse.fromEntity(saved);
+        return toSolutionResponse(saved);
     }
 
     private String getSafeExtension(String originalFilename) {
@@ -180,7 +181,18 @@ public class StudentTaskService {
         Student student = studentRepository.findByUser_Username(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found for user: " + currentUsername));
 
-        return solutionRepository.findByStudentId(student.getId()).stream().map(SolutionResponse::fromEntity).toList();
+        return solutionRepository.findByStudentId(student.getId()).stream()
+                .map(this::toSolutionResponse)
+                .toList();
+    }
+
+    private SolutionResponse toSolutionResponse(Solution solution) {
+        List<CommentResponse> comments = commentRepository
+                .findBySolutionIdOrderByLineNumberAscIdAsc(solution.getId())
+                .stream()
+                .map(CommentResponse::fromEntity)
+                .toList();
+        return SolutionResponse.fromEntity(solution, comments);
     }
 
     @Transactional(readOnly = true)

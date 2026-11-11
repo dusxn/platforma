@@ -1,14 +1,24 @@
 package org.raflab.platforma_server.services;
 
+import java.io.IOException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import lombok.RequiredArgsConstructor;
 import org.raflab.platforma_server.controllers.request.BulkExamRegistrationRequest;
 import org.raflab.platforma_server.controllers.request.CreateExamRegistrationRequest;
+import org.raflab.platforma_server.controllers.request.CreateCommentRequest;
 import org.raflab.platforma_server.controllers.request.CreateTaskRequest;
+import org.raflab.platforma_server.controllers.request.SetSolutionPointsRequest;
+import org.raflab.platforma_server.controllers.response.CommentResponse;
 import org.raflab.platforma_server.controllers.response.ExamRegistrationResponse;
 import org.raflab.platforma_server.controllers.response.TaskSubmissionOverviewResponse;
 import org.raflab.platforma_server.exceptions.ResourceNotFoundException;
 import org.raflab.platforma_server.model.*;
 import org.raflab.platforma_server.repository.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +33,13 @@ public class TeacherService {
     private final ExamTermRepository examTermRepository;
     private final ExamRegistrationRepository examRegistrationRepository;
     private final SolutionRepository solutionRepository;
+    private final CommentRepository commentRepository;
+
+    @Value("${app.solutions.storage-dir:task-solutions}")
+    private String solutionStorageDirectory;
+
+    public record SolutionFile(Resource resource, String fileName) {
+    }
 
     @Transactional
     public Task createTask(CreateTaskRequest request) {
@@ -125,5 +142,61 @@ public class TeacherService {
                         solution.getSolutionPath()
                 ))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SolutionFile getSolutionFile(Long solutionId) {
+        Solution solution = findSolution(solutionId);
+        String storedPath = solution.getSolutionPath();
+        if (storedPath == null || storedPath.isBlank()) {
+            throw new ResourceNotFoundException("Solution file not found");
+        }
+
+        try {
+            Path root = Path.of(solutionStorageDirectory).toRealPath();
+            Path candidate = root.resolve(storedPath).normalize();
+            if (!candidate.startsWith(root)) {
+                throw new ResourceNotFoundException("Solution file not found");
+            }
+
+            Path file = candidate.toRealPath();
+            if (!file.startsWith(root) || !Files.isRegularFile(file) || !Files.isReadable(file)) {
+                throw new ResourceNotFoundException("Solution file not found");
+            }
+            return new SolutionFile(new FileSystemResource(file), file.getFileName().toString());
+        } catch (InvalidPathException | IOException exception) {
+            throw new ResourceNotFoundException("Solution file not found");
+        }
+    }
+
+    @Transactional
+    public CommentResponse addComment(Long solutionId, CreateCommentRequest request) {
+        Solution solution = findSolution(solutionId);
+        Comment comment = new Comment();
+        comment.setSolution(solution);
+        comment.setFilePath(request.filePath().trim());
+        comment.setLineNumber(request.lineNumber());
+        comment.setText(request.text().trim());
+        return CommentResponse.fromEntity(commentRepository.save(comment));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getComments(Long solutionId) {
+        findSolution(solutionId);
+        return commentRepository.findBySolutionIdOrderByLineNumberAscIdAsc(solutionId).stream()
+                .map(CommentResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional
+    public void setSolutionPoints(Long solutionId, SetSolutionPointsRequest request) {
+        Solution solution = findSolution(solutionId);
+        solution.setPoints(request.points());
+        solutionRepository.save(solution);
+    }
+
+    private Solution findSolution(Long solutionId) {
+        return solutionRepository.findById(solutionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Solution not found with id: " + solutionId));
     }
 }
