@@ -1,18 +1,18 @@
 package org.raflab.platforma_server.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.raflab.platforma_server.controllers.request.SubmitSolutionRequest;
 import org.raflab.platforma_server.controllers.response.SolutionResponse;
 import org.raflab.platforma_server.controllers.response.TaskResponse;
 import org.raflab.platforma_server.services.StudentTaskService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -51,11 +51,12 @@ public class StudentTaskController {
         return ResponseEntity.ok(solutions);
     }
 
-    @PostMapping("/submit")
-    public ResponseEntity<SolutionResponse> submitSolution(@RequestBody SubmitSolutionRequest request,
-                                                           @AuthenticationPrincipal Jwt jwt) {
+    @PostMapping(value = "/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SolutionResponse> submitSolution(@RequestParam("taskId") Long taskId,
+                                                           @RequestParam("file") MultipartFile file,
+                                                           @AuthenticationPrincipal Jwt jwt) throws IOException {
         String currentUsername = jwt.getSubject();
-        SolutionResponse response = studentTaskService.submitSolution(request, currentUsername);
+        SolutionResponse response = studentTaskService.submitSolution(taskId, file, currentUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

@@ -2,6 +2,7 @@ HELP.md
 target/
 task-archives/*
 !task-archives/.gitkeep
+task-solutions/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
